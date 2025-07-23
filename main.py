@@ -1,7 +1,7 @@
 import os
 import requests
 import asyncio
-from datetime import datetime, time, timedelta
+from datetime import datetime, timedelta
 from telegram import Update
 from telegram.ext import (
     ApplicationBuilder,
@@ -11,6 +11,8 @@ from telegram.ext import (
     MessageHandler,
     filters,
 )
+from flask import Flask
+from threading import Thread
 
 # توكن بوت تيليجرام
 TOKEN = "8028036634:AAFS_FjnPrzLw1B-qYp2l1VCoYJBcRcXiv8"
@@ -18,6 +20,13 @@ TOKEN = "8028036634:AAFS_FjnPrzLw1B-qYp2l1VCoYJBcRcXiv8"
 # مفاتيح API
 CRYPTO_API_KEY = "fd405453b43afbd4a8b7919d6dff0fe50fb0e584acc5cf858a1fa6e0c66f928a"
 NEWS_API_KEY = "4e7fb52de4f44feca32a9110ecd1150f"
+
+# Flask app
+flask_app = Flask(__name__)
+
+@flask_app.route("/")
+def home():
+    return "بوت العملات الرقمية يعمل بنجاح!"
 
 # أوضاع المحادثة
 ADD_COIN, ADD_AMOUNT, ADD_PRICE, REMOVE_COIN = range(4)
@@ -95,9 +104,13 @@ def fetch_prices(symbols):
     symbols_str = ",".join(symbols).upper()
     url = f"https://min-api.cryptocompare.com/data/pricemulti?fsyms={symbols_str}&tsyms=USD"
     headers = {"authorization": f"Apikey {CRYPTO_API_KEY}"}
-    resp = requests.get(url, headers=headers)
-    data = resp.json()
-    return data
+    try:
+        resp = requests.get(url, headers=headers, timeout=10)
+        data = resp.json()
+        return data
+    except Exception as e:
+        print(f"Error fetching prices: {e}")
+        return {}
 
 def build_stats(user_data):
     coins = user_data["coins"]
@@ -121,16 +134,22 @@ def fetch_news(symbols, lang_code):
     lang = "ar" if lang_code == "ar" else "en"
     query = " OR ".join(symbols) if symbols else "crypto"
     url = f"https://newsapi.org/v2/everything?q={query}&language={lang}&pageSize=3&sortBy=publishedAt&apiKey={NEWS_API_KEY}"
-    resp = requests.get(url)
-    articles = resp.json().get("articles", [])
-    if not articles:
+    try:
+        resp = requests.get(url, timeout=10)
+        articles = resp.json().get("articles", [])
+        if not articles:
+            return LANGS[lang_code]["no_coins"]
+        news_text = ""
+        for art in articles:
+            title = art.get("title", "")
+            url = art.get("url", "")
+            news_text += f"\n- {title}\n{url}\n"
+        return news_text
+    except Exception as e:
+        print(f"Error fetching news: {e}")
         return LANGS[lang_code]["no_coins"]
-    news_text = ""
-    for art in articles:
-        title = art.get("title", "")
-        url = art.get("url", "")
-        news_text += f"\n- {title}\n{url}\n"
-    return news_text
+
+# أوامر البوت
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_data = get_user_data(update.effective_user.id)
@@ -160,7 +179,6 @@ async def addcoin_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def addcoin_symbol(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_data = get_user_data(update.effective_user.id)
     symbol = update.message.text.upper()
-    # تحقق من صحة العملة (باختصار)
     prices = fetch_prices([symbol])
     if symbol not in prices:
         await update.message.reply_text(LANGS[user_data["lang"]]["invalid_symbol"])
@@ -232,7 +250,7 @@ async def lang_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def daily_alerts(app):
     while True:
         now = datetime.now()
-        target_time = now.replace(hour=20, minute=0, second=0, microsecond=0)  # 20:00
+        target_time = now.replace(hour=20, minute=0, second=0, microsecond=0)  # 20:00 بتوقيت السيرفر
         if now > target_time:
             target_time += timedelta(days=1)
         wait_seconds = (target_time - now).total_seconds()
@@ -297,9 +315,12 @@ if __name__ == "__main__":
     app.add_handler(rmcoin_conv)
 
     # تشغيل مهمة التنبيه اليومي بالخلفية
-    import asyncio
     loop = asyncio.get_event_loop()
     loop.create_task(daily_alerts(app))
+
+    # تشغيل Flask في ثريد منفصل (لتفادي حظر الحدث الرئيسي)
+    port = int(os.environ.get("PORT", 8080))
+    Thread(target=lambda: flask_app.run(host="0.0.0.0", port=port)).start()
 
     print("Bot started...")
     app.run_polling()
