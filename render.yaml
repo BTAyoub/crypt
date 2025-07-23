@@ -1,9 +1,15 @@
-
 services:
   - type: web
-    name: crypto-bot
+    name: cryptobot
     env: python
     plan: free
-    buildCommand: pip install -r requirements.txt
-    startCommand: python main.py
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "python main.py"
     autoDeploy: true
+    envVars:
+      - key: TOKEN
+        value: "8028036634:AAFS_FjnPrzLw1B-qYp2l1VCoYJBcRcXiv8"
+      - key: CRYPTO_API_KEY
+        value: "YOUR_CRYPTOCOMPARE_API_KEY"
+      - key: NEWS_API_KEY
+        value: "YOUR_NEWSAPI_API_KEY"
