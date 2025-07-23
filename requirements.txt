@@ -1,5 +1,5 @@
-
-python-telegram-bot==20.0
-Flask
+python-telegram-bot[job-queue]==22.3
 requests
-APScheduler
+flask
+nest_asyncio
+apscheduler==3.11.0
