@@ -11,9 +11,11 @@ from telegram.ext import (
     MessageHandler,
     filters,
 )
+from keep_alive import keep_alive
 
-nest_asyncio.apply()  # حل مشكلة event loop موجود مسبقًا
+nest_asyncio.apply()  # لتفادي مشاكل event loop
 
+# المفاتيح اللي طلبتها مني أضعها هنا مباشرة
 TOKEN = "7963071210:AAGEHgS48YIbjHSCBehb6aYDM-vVvzKq7DE"
 CRYPTO_API_KEY = "fd405453b43afbd4a8b7919d6dff0fe50fb0e584acc5cf858a1fa6e0c66f928a"
 NEWS_API_KEY = "4e7fb52de4f44feca32a9110ecd1150f"
@@ -292,16 +294,17 @@ async def main():
     )
     app.add_handler(rm_conv)
 
-    # جدول التقرير اليومي الساعة 20:00 توقيت تونس (UTC+1)
+    # جدولة التقرير اليومي الساعة 20:00 توقيت تونس (UTC+1)
     tz_offset = 1
     hour_utc = (20 - tz_offset) % 24
     app.job_queue.run_daily(daily_report, time=datetime.time(hour=hour_utc, minute=0, second=0))
 
-    # بدء مهمة التنبيهات الفورية
+    # تشغيل التنبيهات الفورية
     asyncio.create_task(check_price_alerts(app))
 
     print("⚡ Bot is running...")
     await app.run_polling()
 
 if __name__ == "__main__":
+    keep_alive()  # شغل keep_alive ليبقى البوت شغال
     asyncio.run(main())
