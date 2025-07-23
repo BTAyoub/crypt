@@ -1,9 +1,9 @@
-
-from telegram import Update, Bot
+from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 import requests
 import datetime
 from keep_alive import keep_alive
+
 keep_alive()
 
 TOKEN = "7963071210:AAGEHgS48YIbjHSCBehb6aYDM-vVvzKq7DE"
@@ -48,11 +48,12 @@ async def daily_report(context: ContextTypes.DEFAULT_TYPE):
 
 if __name__ == "__main__":
     app = ApplicationBuilder().token(TOKEN).build()
+    job_queue = app.job_queue
 
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("status", status))
 
-    app.job_queue.run_daily(daily_report, time=datetime.time(hour=9, minute=0, second=0))
+    job_queue.run_daily(daily_report, time=datetime.time(hour=9, minute=0, second=0))
 
     print("⚡ Bot is running...")
     app.run_polling()
