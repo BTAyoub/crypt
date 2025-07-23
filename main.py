@@ -1,6 +1,7 @@
 import requests
 import datetime
 import asyncio
+import nest_asyncio
 from telegram import Update
 from telegram.ext import (
     ApplicationBuilder,
@@ -10,6 +11,8 @@ from telegram.ext import (
     MessageHandler,
     filters,
 )
+
+nest_asyncio.apply()  # حل مشكلة event loop موجود مسبقًا
 
 TOKEN = "7963071210:AAGEHgS48YIbjHSCBehb6aYDM-vVvzKq7DE"
 CRYPTO_API_KEY = "fd405453b43afbd4a8b7919d6dff0fe50fb0e584acc5cf858a1fa6e0c66f928a"
@@ -294,6 +297,7 @@ async def main():
     hour_utc = (20 - tz_offset) % 24
     app.job_queue.run_daily(daily_report, time=datetime.time(hour=hour_utc, minute=0, second=0))
 
+    # بدء مهمة التنبيهات الفورية
     asyncio.create_task(check_price_alerts(app))
 
     print("⚡ Bot is running...")
