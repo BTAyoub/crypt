@@ -6,4 +6,5 @@ services:
     plan: free
     buildCommand: ""
     startCommand: python main.py
+    env: python
     autoDeploy: true
