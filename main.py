@@ -4,6 +4,9 @@ import time
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 import asyncio
+from keep_alive import keep_alive
+keep_alive()
+
 
 TOKEN = "8028036634:AAFS_FjnPrzLw1B-qYp2l1VCoYJBcRcXiv8"
 CHAT_ID = None  # سيتم تحديثها عند أول استخدام
