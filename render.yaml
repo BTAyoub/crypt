@@ -1,10 +1,9 @@
 services:
   - type: web
-    name: youba-crypto-bot
+    name: crypto-tracker-bot
     env: python
+    region: oregon
     plan: free
     buildCommand: ""
     startCommand: python main.py
-    envVars:
-      - key: BOT_TOKEN
-        value: 8028036634:AAFS_FjnPrzLw1B-qYp2l1VCoYJBcRcXiv8
+    autoDeploy: true
