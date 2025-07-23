@@ -4,5 +4,7 @@ services:
     env: python
     plan: free
     buildCommand: ""
-    startCommand: "python main.py"
-    autoDeploy: false
+    startCommand: python main.py
+    envVars:
+      - key: BOT_TOKEN
+        value: 8028036634:AAFS_FjnPrzLw1B-qYp2l1VCoYJBcRcXiv8
