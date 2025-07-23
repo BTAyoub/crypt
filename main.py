@@ -6,28 +6,32 @@ import time
 import pytz
 import threading
 import os
+import asyncio
 from datetime import datetime
 from telegram import Update
 from telegram.ext import Application, CommandHandler, ContextTypes
 
-TOKEN = os.environ.get("BOT_TOKEN")  # توكن البوت من متغير بيئي
+# ✨ هنا ضع التوكن بشكل مباشر لاختبار البوت (يفضل استخدام env في البيئة الحقيقية)
+TOKEN = "8028036634:AAFS_FjnPrzLw1B-qYp2l1VCoYJBcRcXiv8"
+
 USER_DATA_FILE = "user_data.json"
 ARABIC = "ar"
 ENGLISH = "en"
 DEFAULT_LANG = ARABIC
 
-# إعداد اللوج
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # ---------------- أدوات ----------------
 
 def load_data():
-    try:
-        with open(USER_DATA_FILE, "r") as f:
-            return json.load(f)
-    except:
+    if not os.path.isfile(USER_DATA_FILE):
         return {}
+    with open(USER_DATA_FILE, "r") as f:
+        try:
+            return json.load(f)
+        except json.JSONDecodeError:
+            return {}
 
 def save_data(data):
     with open(USER_DATA_FILE, "w") as f:
@@ -35,8 +39,11 @@ def save_data(data):
 
 def get_price(symbol):
     url = f"https://api.coingecko.com/api/v3/simple/price?ids={symbol}&vs_currencies=usd"
-    response = requests.get(url)
-    return response.json().get(symbol, {}).get("usd", 0)
+    try:
+        response = requests.get(url)
+        return response.json().get(symbol, {}).get("usd", 0)
+    except Exception:
+        return 0
 
 def symbol_to_id(symbol):
     mapping = {
@@ -171,8 +178,6 @@ def schedule_loop(app):
         time.sleep(60)
 
 # ---------------- تشغيل البوت ----------------
-
-import asyncio
 
 async def main():
     app = Application.builder().token(TOKEN).build()
