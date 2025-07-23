@@ -1,8 +1,16 @@
 services:
   - type: web
-    name: cryptobot
+    name: crypto-telegram-bot
     env: python
-    plan: free
-    buildCommand: pip install -r requirements.txt
-    startCommand: python main.py
+    region: oregon
+    plan: starter
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "python3 bot.py"
     autoDeploy: true
+    envVars:
+      - key: TOKEN
+        value: "8028036634:AAFS_FjnPrzLw1B-qYp2l1VCoYJBcRcXiv8"
+      - key: CRYPTO_API_KEY
+        value: "fd405453b43afbd4a8b7919d6dff0fe50fb0e584acc5cf858a1fa6e0c66f928a"
+      - key: NEWS_API_KEY
+        value: "4e7fb52de4f44feca32a9110ecd1150f"
